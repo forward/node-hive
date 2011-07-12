@@ -1,6 +1,6 @@
 {
   "author": "Forward",
-  "contributors":["Jae Lee", "Antonio Terreno", "Andy Kent"],
+  "contributors":["Jae Lee <jlee@yetitrails.com>", "Antonio Terreno <antonio.terreno@gmail.com>", "Andy Kent"],
   "name": "node-hive",
   "description": "Node Hive Client Library",
   "version": "0.0.2",
