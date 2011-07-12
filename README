@@ -1,1 +1,2 @@
 Thrift module has been cloned from https://github.com/wadey/node-thrift/commit/25c0eb4eb85aa63cfb49a8e8c815bd57e2b8043a
+nodejs binding is generated from hive 0.6.1 CDH3B4
