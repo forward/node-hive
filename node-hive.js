@@ -1,6 +1,7 @@
 var thrift = require('thrift'),
     ttransport = require('thrift/transport'),
-    ThriftHive = require('gen-nodejs/ThriftHive');
+    ThriftHive = require('gen-nodejs/ThriftHive')
+    ResultSet = require('./result_set')
 
 var futureConnection = function(config) {
   return function(cb) {
@@ -15,11 +16,14 @@ var hiveClient = function(futureConnection) {
     fetch: function(query, cb) {
       futureConnection(function(client, connection) {
         client.execute(query, function(err){
-          if (err) return cb(true, err);
-          client.fetchAll(function(err, data){
+          if(err) return cb(true, err);
+          client.getSchema(function(err, schema) {
             if (err) return cb(true, err);
-            cb(null, data);
-            connection.end();
+            client.fetchAll(function(err, data){
+              if (err) return cb(true, err);
+              cb(null, ResultSet.create(data, schema));
+              connection.end();
+            });
           });
         });
       })
