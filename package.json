@@ -1,9 +1,9 @@
 {
   "author": "Forward",
-  "contributors":["Jae Lee", "Antonio Terreno"],
+  "contributors":["Jae Lee", "Antonio Terreno", "Andy Kent"],
   "name": "node-hive",
   "description": "Node Hive Client Library",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/forward/node-hive",
   "repository": {
     "type": "git",
