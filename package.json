@@ -1,0 +1,17 @@
+{
+  "author": "Jae & Toni <jobs@foward.co.uk>",
+  "name": "node-hive",
+  "description": "Node Hive Client Library",
+  "version": "0.0.1",
+  "homepage": "https://github.com/forward/node-hive",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/forward/node-hive.git"
+  },
+  "main": "node-hive",
+  "engines": {
+    "node": "v0.4.8"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
