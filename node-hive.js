@@ -33,17 +33,20 @@ var hiveClient = function(futureConnection) {
       futureConnection(function(client, connection) {
         client.execute(query, function(err){
           if (err) return cb(true, err);
-          var fetchBatch = function() {
-            client.fetchN(batchSize, function(err, data){
-              if (err) return cb(true, err);
-              if(data.length > 0) {
-                cb(null, data);
-                process.nextTick(fetchBatch);
-              }
-              else connection.end();
-            });
-          };
-          fetchBatch();
+          client.getSchema(function(err, schema) {
+            if (err) return cb(true, err);
+            var fetchBatch = function() {
+              client.fetchN(batchSize, function(err, data){
+                if (err) return cb(true, err);
+                if(data.length > 0) {
+                  cb(null, ResultSet.create(data, schema));
+                  process.nextTick(fetchBatch);
+                }
+                else connection.end();
+              });
+            };
+            fetchBatch();
+          });
         });
       })
     },
