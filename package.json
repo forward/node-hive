@@ -1,5 +1,6 @@
 {
-  "author": "Jae & Toni <jobs@foward.co.uk>",
+  "author": "Forward",
+  "contributors":["Jae Lee", "Antonio Terreno"],
   "name": "node-hive",
   "description": "Node Hive Client Library",
   "version": "0.0.1",
