@@ -25,6 +25,25 @@ var hiveClient = function(futureConnection) {
       })
     },
     
+    fetchInBatch: function(batchSize, query, cb) {
+      futureConnection(function(client, connection) {
+        client.execute(query, function(err){
+          if (err) return cb(true, err);
+          var fetchBatch = function() {
+            client.fetchN(batchSize, function(err, data){
+              if (err) return cb(true, err);
+              if(data.length > 0) {
+                cb(null, data);
+                process.nextTick(fetchBatch);
+              }
+              else connection.end();
+            });
+          };
+          fetchBatch();
+        });
+      })
+    },
+    
     execute: function(query, cb){
       futureConnection(function(client, connection) {
         client.execute(query, function(err){
