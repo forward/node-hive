@@ -1,8 +1,9 @@
 hive = require('../node-hive').for({server:"hive.hadoop.forward.co.uk"});
 
 hive.fetch("SELECT * FROM weather_data where dated = '2011-07-01' limit 10", function(err, data) {
-  console.log("SELECT * FROM weather_data where dated = '2011-07-01' limit 10");
-  console.log(data);
+  data.each(function(record) {
+    console.log(record);
+  });
 });
 
 var i = 1;
