@@ -6,9 +6,7 @@ var futureConnection = function(config) {
   return function(cb) {
     var connection = thrift.createConnection(config.server, config.port || 10000, {transport: ttransport.TBufferedTransport, timeout: config.timeout || 1000});
     var client = thrift.createClient(ThriftHive, connection);
-    connection.addListener("connect", function(){
-      cb(client, connection);
-    });
+    cb(client, connection);
   };
 };
 
