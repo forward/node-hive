@@ -11,46 +11,43 @@ var hiveClient = function(config) {
     
     var connection = thrift.createConnection(server, port, options);
     var client = thrift.createClient(ThriftHive, connection);
+
+    var propagate = function(func, arguments) {
+      var args = [];
+      for (var i=2; i < arguments.length; i++) {
+        args.push(arguments[i]);
+      };
+      func.apply(null, args);
+    }
+
+    var continueOnSuccess = function(err, onSuccess) {
+      if (err) {
+        connection.end();
+        onError(true, err);
+      } else {
+        propagate(onSuccess, arguments)
+      }
+    };
     
     connected({
       execute: function(query, onSuccess) {
         client.execute(query, function(err) {
-          if (err) {
-            connection.end();
-            onError(true, err);
-          } else {
-            onSuccess();
-          }
+          continueOnSuccess(err, onSuccess);
         });
       },
       getSchema: function(onSuccess) {
         client.getSchema(function(err, schema) {
-          if (err) {
-            connection.end();
-            onError(true, err);
-          } else {
-            onSuccess(schema);
-          }
+          continueOnSuccess(err, onSuccess, schema);
         });
       },
       fetchAll: function(onSuccess) {
         client.fetchAll(function(err, data) {
-          if (err) {
-            connection.end();
-            onError(true, err);
-          } else {
-            onSuccess(data);
-          }
+          continueOnSuccess(err, onSuccess, data);
         });
       },
       fetchN: function(batchSize, onSuccess) {
         client.fetchN(batchSize, function(err, data) {
-          if (err) {
-            connection.end();
-            onError(true, err);
-          } else {
-            onSuccess(data);
-          }
+          continueOnSuccess(err, onSuccess, data);
         });
       },
       closeConnection: function() {
