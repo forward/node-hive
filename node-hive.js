@@ -70,17 +70,18 @@ var hiveClient = function(config) {
       });
     },
     
-    fetchInBatch: function(batchSize, query, onCompletion) {
-      connect(onCompletion, function(client) {
+    fetchInBatch: function(batchSize, query, onBatchCompletion, onCompletion) {
+      connect(onBatchCompletion, function(client) {
         client.execute(query, function() {
           client.getSchema(function(schema) {
             var fetchBatch = function() {
               client.fetchN(batchSize, function(data) {
                 if(data.length > 0) {
-                  onCompletion(null, ResultSet.create(data, schema));
+                  onBatchCompletion(null, ResultSet.create(data, schema));
                   process.nextTick(fetchBatch);
                 } else {
                   client.closeConnection();
+                  if (onCompletion) onCompletion(null, null);
                 }
               });
             };
