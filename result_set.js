@@ -8,8 +8,16 @@ ResultSet.prototype.each = function(cb) {
     var rowArray = this.rows[i].split("\t");
     var row = {};
     var headers = this.headers();
+    var schema = this.schema;
+    typecast = function(column, stringValue) {
+      var found = schema.filter(function(s) { return s.name === column });
+      var type = 'string';
+      if(found.length === 1) type = found[0].type;
+      if(type === 'double' || type === 'float' || type === 'int') return Number(stringValue);
+      return stringValue;
+    };
     for(var a in rowArray) {
-      row[headers[a]] = rowArray[a];
+      row[headers[a]] = typecast(headers[a], rowArray[a]);
     }
     cb(row);
   };
