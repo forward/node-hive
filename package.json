@@ -3,7 +3,7 @@
   "contributors":["Jae Lee <jlee@yetitrails.com>", "Antonio Terreno <antonio.terreno@gmail.com>", "Andy Kent"],
   "name": "node-hive",
   "description": "Node Hive Client Library",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "homepage": "https://github.com/forward/node-hive",
   "repository": {
     "type": "git",
