@@ -1,62 +1,100 @@
 var thrift = require('thrift'),
     ttransport = require('thrift/transport'),
-    ThriftHive = require('gen-nodejs/ThriftHive')
-    ResultSet = require('./result_set')
+    ThriftHive = require('gen-nodejs/ThriftHive'),
+    ResultSet = require('./result_set');
 
-var futureConnection = function(config) {
-  return function(cb) {
-    var connection = thrift.createConnection(config.server, config.port || 10000, {transport: ttransport.TBufferedTransport, timeout: config.timeout || 1000});
+var hiveClient = function(config) {
+  var connect = function(onError, connected) {
+    var server = config.server;
+    var port = config.port || 10000;
+    var options = {transport: ttransport.TBufferedTransport, timeout: config.timeout || 1000};
+    
+    var connection = thrift.createConnection(server, port, options);
     var client = thrift.createClient(ThriftHive, connection);
-    cb(client, connection);
-  };
-};
 
-var hiveClient = function(futureConnection) {
+    var propagate = function(func, arguments) {
+      var args = [];
+      for (var i=2; i < arguments.length; i++) {
+        args.push(arguments[i]);
+      };
+      func.apply(null, args);
+    }
+
+    var continueOnSuccess = function(err, onSuccess) {
+      if (err) {
+        connection.end();
+        onError(true, err);
+      } else {
+        propagate(onSuccess, arguments)
+      }
+    };
+    
+    connected({
+      execute: function(query, onSuccess) {
+        client.execute(query, function(err) {
+          continueOnSuccess(err, onSuccess);
+        });
+      },
+      getSchema: function(onSuccess) {
+        client.getSchema(function(err, schema) {
+          continueOnSuccess(err, onSuccess, schema);
+        });
+      },
+      fetchAll: function(onSuccess) {
+        client.fetchAll(function(err, data) {
+          continueOnSuccess(err, onSuccess, data);
+        });
+      },
+      fetchN: function(batchSize, onSuccess) {
+        client.fetchN(batchSize, function(err, data) {
+          continueOnSuccess(err, onSuccess, data);
+        });
+      },
+      closeConnection: function() {
+        connection.end();
+      }
+    });
+  };
+  
   return {
-    fetch: function(query, cb) {
-      futureConnection(function(client, connection) {
-        client.execute(query, function(err){
-          if(err) return cb(true, err);
-          client.getSchema(function(err, schema) {
-            if (err) return cb(true, err);
-            client.fetchAll(function(err, data){
-              if (err) return cb(true, err);
-              cb(null, ResultSet.create(data, schema));
-              connection.end();
+    fetch: function(query, onCompletion) {
+      connect(onCompletion, function(client) {
+        client.execute(query, function() {
+          client.getSchema(function(schema) {
+            client.fetchAll(function(data) {
+              client.closeConnection();
+              onCompletion(null, ResultSet.create(data, schema));
             });
           });
         });
-      })
+      });
     },
     
-    fetchInBatch: function(batchSize, query, cb) {
-      futureConnection(function(client, connection) {
-        client.execute(query, function(err){
-          if (err) return cb(true, err);
-          client.getSchema(function(err, schema) {
-            if (err) return cb(true, err);
+    fetchInBatch: function(batchSize, query, onCompletion) {
+      connect(onCompletion, function(client) {
+        client.execute(query, function() {
+          client.getSchema(function(schema) {
             var fetchBatch = function() {
-              client.fetchN(batchSize, function(err, data){
-                if (err) return cb(true, err);
+              client.fetchN(batchSize, function(data) {
                 if(data.length > 0) {
-                  cb(null, ResultSet.create(data, schema));
+                  onCompletion(null, ResultSet.create(data, schema));
                   process.nextTick(fetchBatch);
+                } else {
+                  client.closeConnection();
                 }
-                else connection.end();
               });
             };
             fetchBatch();
           });
         });
-      })
+      });
     },
     
-    execute: function(query, cb){
-      futureConnection(function(client, connection) {
-        client.execute(query, function(err){
-          if (err) return cb(true, err);
-          cb(null, null);
-          connection.end();
+    execute: function(query, onCompletion){
+      connect(onCompletion, function(client) {
+        client.execute(query, function(){
+          client.closeConnection();
+          onCompletion(null, null);
         });
       });
     },
@@ -64,5 +102,5 @@ var hiveClient = function(futureConnection) {
 };
 
 exports.for = function(config) {
-  return hiveClient(futureConnection(config));
+  return hiveClient(config);
 };
