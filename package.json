@@ -11,7 +11,7 @@
   },
   "main": "node-hive",
   "engines": {
-    "node": "v0.4.8"
+    "node": ">= v0.4.8"
   },
   "dependencies": {},
   "devDependencies": {}
